@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import generic
@@ -105,3 +106,15 @@ class DriverLicenseUpdateView(LoginRequiredMixin, generic.UpdateView):
 class DriverDeleteView(LoginRequiredMixin, generic.DeleteView):
     model = Driver
     success_url = reverse_lazy("taxi:driver-list")
+
+
+@login_required
+def toggle_assign_to_car(request, pk):
+    driver = Driver.objects.get(id=request.user.id)
+    if (
+        Car.objects.get(id=pk) in driver.cars.all()
+    ):  # probably could check if car exists
+        driver.cars.remove(pk)
+    else:
+        driver.cars.add(pk)
+    return HttpResponseRedirect(reverse_lazy("taxi:car-detail", args=[pk]))
